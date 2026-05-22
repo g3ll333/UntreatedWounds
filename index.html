@@ -319,6 +319,32 @@
       background: var(--dr-red);
       color: white;
     }
+
+    /* =========================================================
+       MEDIA QUERIES PER OTTIMIZZAZIONE MOBILE (SMARTPHONE)
+       ========================================================= */
+    @media (max-width: 768px) {
+      #brandLogo {
+        top: 1rem;
+        right: 1.5rem;
+      }
+      #brandLogo img {
+        height: 38px; /* Logo rimpicciolito su mobile */
+      }
+      #introText {
+        font-size: 0.9rem;
+      }
+      .memory-text {
+        font-size: 0.65rem; /* Testi sotto i cerotti più piccoli */
+      }
+      .memory-author {
+        font-size: 0.8em;
+      }
+      #refreshButton {
+        bottom: 1.5rem;
+        font-size: 0.75rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -397,7 +423,7 @@ const canvas = document.getElementById("canvas");
 const refreshButton = document.getElementById("refreshButton");
 const brandLogo = document.getElementById("brandLogo");
 
-// Avvio: Animazioni dell'Intro - Tempi dimezzati e più scattanti
+// Avvio: Animazioni dell'Intro
 window.onload = () => {
   setTimeout(() => {
     introText.classList.add("visible");
@@ -405,7 +431,7 @@ window.onload = () => {
 
   setTimeout(() => {
     enterButton.classList.add("visible");
-  }, 2500); // Prima era 4500
+  }, 2500); 
 };
 
 // Transizione 1: Da Intro a Form
@@ -416,14 +442,14 @@ enterButton.addEventListener("click", () => {
   setTimeout(() => {
     formScreen.classList.remove("hidden");
     formScreen.classList.add("visible");
-  }, 800); // Prima era 1500
+  }, 800); 
 });
 
 // Transizione 2: Da Form a Thanks, e infine Canvas
 memoryForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   
-  // 1. Nascondi il Form
+  // Nascondi il Form
   formScreen.classList.remove("visible");
   formScreen.classList.add("hidden");
   
@@ -436,7 +462,6 @@ memoryForm.addEventListener("submit", async (e) => {
 
   try {
     const data = new URLSearchParams(formData);
-    // mode: 'no-cors' aggiunge robustezza all'invio per evitare blocchi del browser sul redirect
     await fetch(GOOGLE_SCRIPT_URL, {
       method: "POST",
       mode: "no-cors",
@@ -446,43 +471,38 @@ memoryForm.addEventListener("submit", async (e) => {
     console.error("Error saving to sheet", e);
   }
   
-  // 2. Mostra il Thanks message più velocemente
+  // Mostra il Thanks message
   setTimeout(() => {
     thanksMessage.classList.remove("hidden");
     thanksMessage.classList.add("visible");
-  }, 600); // Prima era 1500
+  }, 600); 
 
-  // 3. Nascondi il Thanks message e Carica il Canvas in tempi più rapidi
+  // Nascondi il Thanks message e Carica il Canvas
   setTimeout(() => {
     thanksMessage.classList.remove("visible");
     thanksMessage.classList.add("hidden");
     
-    // Mostriamo il logo del Brand in alto a destra
     brandLogo.classList.add("visible");
 
-    // Inizia a generare i cerotti
     loadMemories(newMemory);
-  }, 2800); // Prima era 5000 (rimane a schermo per ~2 secondi)
+  }, 2800); 
 });
 
 /* ---------------------------------------------------
    LOGICA DI RICARICA MEMORIE (REFRESH)
 --------------------------------------------------- */
 refreshButton.addEventListener("click", () => {
-  // Nasconde il bottone
   refreshButton.classList.remove("visible");
   
-  // Svaniscono tutte le memorie con un effetto molto rapido
   const wrappers = document.querySelectorAll(".memory-wrapper");
   wrappers.forEach(w => {
     w.style.opacity = "0";
     w.style.pointerEvents = "none";
   });
 
-  // Ricalcola subito e ricarica i nuovi cerotti
   setTimeout(() => {
     loadMemories(); 
-  }, 600); // Prima era 1000
+  }, 600); 
 });
 
 /* ---------------------------------------------------
@@ -490,7 +510,6 @@ refreshButton.addEventListener("click", () => {
 --------------------------------------------------- */
 const MAX_PLASTERS = 20;
 
-// Lista di memorie fallback
 let fallbackMemories = [
   { message: "I haven't talked to my father for 3 years.", name: "A.C." },
   { message: "I wasn't there when my grandmother passed away.", name: "M." },
@@ -524,9 +543,6 @@ let fallbackMemories = [
   { message: "I push people away before they can leave me.", name: "Anonymous" }
 ];
 
-/* Nuove dimensioni ricalibrate per rispettare rigidamente la gerarchia estetica e di copertura:
-  Rotondo (Small) < Quadrato (Medium) < Normale (Large) < Doppio (Extra Large)
-*/
 const plasterConfig = {
   "round":  { src: "rotondo.png",              imgWidth: "120px", textWidth: "85px" },
   "square": { src: "quadrato.png",             imgWidth: "150px", textWidth: "115px" },
@@ -538,7 +554,7 @@ const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6Nkhxi6GkWR
 
 
 /* ---------------------------------------------------
-   LOAD & RENDER MEMORIES (CANVAS) - ANTI DUPLICATI
+   LOAD & RENDER MEMORIES (CANVAS) - DYNAMIC SCALING
 --------------------------------------------------- */
 async function loadMemories(forcedMemory = null) {
   let fetchedPool = [];
@@ -586,13 +602,19 @@ async function loadMemories(forcedMemory = null) {
   const usedRects = [];
   const elements = [];
 
-  const itemBoxWidth = 260; 
-  const itemBoxHeight = 220; 
+  // ==========================================
+  // LOGICA RESPONSIVE: Scala le dimensioni dei box e dei margini se siamo su mobile!
+  // ==========================================
+  const isMobile = window.innerWidth <= 768;
+  const scale = isMobile ? 0.6 : 1; // Riduce del 40% la grandezza dei cerotti su mobile
+
+  const itemBoxWidth = isMobile ? 130 : 260; 
+  const itemBoxHeight = isMobile ? 110 : 220; 
   
-  // Margini di Sicurezza: incrementati notevolmente per impedire a qualsiasi cerotto (incluso il doppio) di uscire dallo schermo
-  const marginX = 80; 
-  const marginTop = 100; // Protegge il bordo superiore e il logo
-  const marginBottom = 120; // Protegge il pulsante in basso
+  // Margini ridotti su mobile per sfruttare tutto lo schermo piccolo
+  const marginX = isMobile ? 20 : 80; 
+  const marginTop = isMobile ? 70 : 100; 
+  const marginBottom = isMobile ? 80 : 120; 
 
   const bottomSafeZone = window.innerHeight - itemBoxHeight - marginBottom; 
   const rightSafeZone = window.innerWidth - itemBoxWidth - marginX;
@@ -611,7 +633,8 @@ async function loadMemories(forcedMemory = null) {
 
     const wrapper = document.createElement("div");
     wrapper.className = "memory-wrapper";
-    wrapper.style.width = plasterData.textWidth;
+    // Applica il ridimensionamento
+    wrapper.style.width = (parseInt(plasterData.textWidth) * scale) + "px";
 
     const textDiv = document.createElement("div");
     textDiv.className = "memory-text";
@@ -620,7 +643,8 @@ async function loadMemories(forcedMemory = null) {
     const plasterImg = document.createElement("img");
     plasterImg.className = "plaster";
     plasterImg.src = plasterData.src;
-    plasterImg.style.width = plasterData.imgWidth;
+    // Applica il ridimensionamento all'immagine
+    plasterImg.style.width = (parseInt(plasterData.imgWidth) * scale) + "px";
     
     plasterImg.alt = "Plaster";
     plasterImg.draggable = false; 
@@ -663,12 +687,10 @@ async function loadMemories(forcedMemory = null) {
     }
   });
 
-  // Animazione a cascata per l'apparizione velocizzata (80ms invece di 150ms)
   elements.forEach((el, i) => {
     setTimeout(() => el.classList.add("visible"), i * 80);
   });
 
-  // Mostriamo il bottone di Refresh subito dopo che l'ultimo cerotto è apparso
   setTimeout(() => {
     refreshButton.classList.add("visible");
   }, (elements.length * 80) + 300);
