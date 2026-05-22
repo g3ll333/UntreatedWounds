@@ -618,14 +618,14 @@ async function loadMemories(forcedMemory = null) {
   const isMobile = window.innerWidth <= 768;
   const scale = isMobile ? 0.6 : 1; // Riduce del 40% la grandezza dei cerotti su mobile
 
-  // Box di collisione: su mobile leggermente aumentate per evitare sovrapposizioni ma non troppo
-  const itemBoxWidth = isMobile ? 160 : 260; 
-  const itemBoxHeight = isMobile ? 150 : 220; 
+  // Box di collisione: su mobile più compatte per permettere più elementi
+  const itemBoxWidth = isMobile ? 130 : 260; 
+  const itemBoxHeight = isMobile ? 120 : 220; 
   
-  // Margini equilibrati: abbastanza per dare spazio ma non esagerati
-  const marginX = isMobile ? 30 : 80; 
-  const marginTop = isMobile ? 80 : 100; 
-  const marginBottom = isMobile ? 100 : 120; 
+  // Margini ridotti per sfruttare tutto lo spazio disponibile
+  const marginX = isMobile ? 15 : 80; 
+  const marginTop = isMobile ? 70 : 100; 
+  const marginBottom = isMobile ? 80 : 120; 
 
   const bottomSafeZone = window.innerHeight - itemBoxHeight - marginBottom; 
   const rightSafeZone = window.innerWidth - itemBoxWidth - marginX;
