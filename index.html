@@ -114,6 +114,28 @@
       pointer-events: auto;
     }
 
+    /* --- STILE PULSANTI UNIFORME --- */
+    button {
+      color: #999;
+      background: none;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 300;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+      align-self: center;
+    }
+
+    button:hover {
+      color: var(--dr-blue);
+      background: none;
+    }
+
     /* --- 2. FORM SCREEN --- */
     #formScreen {
       z-index: 40;
@@ -209,27 +231,6 @@
       transform: scale(1.2);
     }
 
-    button {
-      color: #999;
-      background: none;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 0;
-      font-family: inherit;
-      font-size: 0.9rem;
-      font-weight: 300;
-      text-decoration: underline;
-      text-underline-offset: 4px;
-      cursor: pointer;
-      transition: color 0.3s ease;
-      align-self: center;
-    }
-
-    button:hover {
-      color: var(--dr-blue);
-      background: none;
-    }
-
     /* --- 3. THANK YOU SCREEN --- */
     #thanksMessage {
       z-index: 30;
@@ -252,8 +253,9 @@
       justify-content: center;
       align-items: center;
       opacity: 0;
-      transition: opacity 0.8s ease; /* Resa più scattante l'apparizione */
+      transition: opacity 0.8s ease; 
       pointer-events: auto;
+      z-index: 2; /* Crea il contesto per testo e cerotto */
     }
 
     .memory-wrapper.visible {
@@ -261,12 +263,18 @@
     }
 
     .memory-text {
+      position: relative;
+      z-index: 1; /* Il testo resta sotto il cerotto */
       color: var(--dr-red);
       font-size: 0.8rem; 
       font-weight: 200;  
       text-align: center;
       line-height: 1.5;
       user-select: none;
+      pointer-events: none;
+      background: rgba(255, 255, 255, 0.6); /* Leggero alone per staccare il testo se si sovrappone visivamente */
+      padding: 4px;
+      border-radius: 4px;
     }
 
     .memory-author {
@@ -280,12 +288,16 @@
 
     .plaster {
       position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
       object-fit: contain;
       cursor: grab;
-      z-index: 2;
+      z-index: 3; /* Il cerotto copre il testo */
       filter: drop-shadow(3px 5px 5px rgba(0,0,0,0.15));
       will-change: transform, filter, opacity;
-      transform: translate3d(0, 0, 0);
+      /* Il transform viene gestito in javascript, includerà il translate(-50%, -50%) */
       user-select: none;
       -webkit-user-drag: none;
       -webkit-touch-callout: none;
@@ -305,7 +317,7 @@
       transform: translateX(-50%);
       z-index: 20;
       font-size: 0.8rem;
-      transition: color 0.3s ease, opacity 0.6s ease; /* Velocizzato */
+      transition: color 0.3s ease, opacity 0.6s ease;
       opacity: 0;
       pointer-events: none;
     }
@@ -325,23 +337,23 @@
        ========================================================= */
     @media (max-width: 768px) {
       #brandLogo {
-        top: 1rem;
+        top: 1.5rem;
         right: 1.5rem;
       }
       #brandLogo img {
-        height: 38px; /* Logo rimpicciolito su mobile */
+        height: 42px; /* Logo leggibile ma ottimizzato */
       }
       #introText {
         font-size: 0.9rem;
       }
       .memory-text {
-        font-size: 0.65rem; /* Testi sotto i cerotti più piccoli */
+        font-size: 0.75rem; 
       }
       .memory-author {
         font-size: 0.8em;
       }
       #refreshButton {
-        bottom: 1.5rem;
+        bottom: 2.5rem;
         font-size: 0.75rem;
       }
     }
@@ -423,7 +435,6 @@ const canvas = document.getElementById("canvas");
 const refreshButton = document.getElementById("refreshButton");
 const brandLogo = document.getElementById("brandLogo");
 
-// Avvio: Animazioni dell'Intro
 window.onload = () => {
   setTimeout(() => {
     introText.classList.add("visible");
@@ -434,7 +445,6 @@ window.onload = () => {
   }, 2500); 
 };
 
-// Transizione 1: Da Intro a Form
 enterButton.addEventListener("click", () => {
   introScreen.classList.remove("visible");
   introScreen.classList.add("hidden");
@@ -445,11 +455,9 @@ enterButton.addEventListener("click", () => {
   }, 800); 
 });
 
-// Transizione 2: Da Form a Thanks, e infine Canvas
 memoryForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   
-  // Nascondi il Form
   formScreen.classList.remove("visible");
   formScreen.classList.add("hidden");
   
@@ -471,13 +479,11 @@ memoryForm.addEventListener("submit", async (e) => {
     console.error("Error saving to sheet", e);
   }
   
-  // Mostra il Thanks message
   setTimeout(() => {
     thanksMessage.classList.remove("hidden");
     thanksMessage.classList.add("visible");
   }, 600); 
 
-  // Nascondi il Thanks message e Carica il Canvas
   setTimeout(() => {
     thanksMessage.classList.remove("visible");
     thanksMessage.classList.add("hidden");
@@ -543,18 +549,23 @@ let fallbackMemories = [
   { message: "I push people away before they can leave me.", name: "Anonymous" }
 ];
 
+/* Nuove dimensioni configurate.
+  Nota: textWidth è stato appositamente allargato per garantire che le scritte 
+  escano sempre visivamente dal bordo del cerotto che le copre (specie per il quadrato).
+  boxSize rappresenta la dimensione fisica del contenitore che l'algoritmo userà per i calcoli spaziali.
+*/
 const plasterConfig = {
-  "round":  { src: "rotondo.png",              imgWidth: "120px", textWidth: "85px" },
-  "square": { src: "quadrato.png",             imgWidth: "150px", textWidth: "115px" },
-  "normal": { src: "normale.png",              imgWidth: "210px", textWidth: "160px" },
-  "double": { src: "doppio.png",               imgWidth: "240px", textWidth: "180px" }
+  "round":  { src: "rotondo.png",              boxSize: 120, textWidth: 100 },
+  "square": { src: "quadrato.png",             boxSize: 150, textWidth: 140 },
+  "normal": { src: "normale.png",              boxSize: 210, textWidth: 180 },
+  "double": { src: "doppio.png",               boxSize: 240, textWidth: 190 }
 };
 
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6Nkhxi6GkWRa571tVQFKR0qtZ9dGjzhVT0l7u0XUWcbsGRQoyuaS-C_Ps1bLeAsUS/exec";
 
 
 /* ---------------------------------------------------
-   LOAD & RENDER MEMORIES (CANVAS) - DYNAMIC SCALING
+   LOAD & RENDER MEMORIES (CANVAS) - RIGOROSO ANTI-OVERFLOW
 --------------------------------------------------- */
 async function loadMemories(forcedMemory = null) {
   let fetchedPool = [];
@@ -603,24 +614,15 @@ async function loadMemories(forcedMemory = null) {
   const elements = [];
 
   // ==========================================
-  // LOGICA RESPONSIVE: Scala le dimensioni dei box e dei margini se siamo su mobile!
+  // LOGICA RIGOROSA RESPONSIVE E POSIZIONAMENTO
   // ==========================================
   const isMobile = window.innerWidth <= 768;
-  const scale = isMobile ? 0.6 : 1; // Riduce del 40% la grandezza dei cerotti su mobile
-
-  const itemBoxWidth = isMobile ? 130 : 260; 
-  const itemBoxHeight = isMobile ? 110 : 220; 
+  const scale = isMobile ? 0.55 : 1; // Riduce opportunamente i cerotti per lo schermo mobile
   
-  // Margini ridotti su mobile per sfruttare tutto lo schermo piccolo
-  const marginX = isMobile ? 20 : 80; 
-  const marginTop = isMobile ? 70 : 100; 
-  const marginBottom = isMobile ? 80 : 120; 
-
-  const bottomSafeZone = window.innerHeight - itemBoxHeight - marginBottom; 
-  const rightSafeZone = window.innerWidth - itemBoxWidth - marginX;
-
-  const maxY = Math.max(marginTop, bottomSafeZone);
-  const maxX = Math.max(marginX, rightSafeZone);
+  // Margini rigidi per evitare tagli sullo schermo
+  const marginX = isMobile ? 25 : 50; 
+  const marginTop = isMobile ? 80 : 100; // Protegge il logo
+  const marginBottom = isMobile ? 100 : 120; // Protegge il tasto Load Other
 
   memoriesToDisplay.forEach((item, index) => {
     let pType = item.plasterType;
@@ -630,49 +632,59 @@ async function loadMemories(forcedMemory = null) {
     }
 
     const plasterData = plasterConfig[pType] || plasterConfig["normal"];
+    
+    // Calcoliamo la dimensione del cerotto finale
+    const size = plasterData.boxSize * scale;
 
     const wrapper = document.createElement("div");
     wrapper.className = "memory-wrapper";
-    // Applica il ridimensionamento
-    wrapper.style.width = (parseInt(plasterData.textWidth) * scale) + "px";
+    wrapper.style.width = size + "px";
+    wrapper.style.height = size + "px";
 
     const textDiv = document.createElement("div");
     textDiv.className = "memory-text";
-    textDiv.innerHTML = `${item.message}<span class="memory-author">— ${item.name || "Anonymous"}</span>`;
+    textDiv.style.width = (plasterData.textWidth * scale) + "px";
+    textDiv.innerHTML = `${item.message}<br><span class="memory-author">— ${item.name || "Anonymous"}</span>`;
 
     const plasterImg = document.createElement("img");
     plasterImg.className = "plaster";
     plasterImg.src = plasterData.src;
-    // Applica il ridimensionamento all'immagine
-    plasterImg.style.width = (parseInt(plasterData.imgWidth) * scale) + "px";
     
     plasterImg.alt = "Plaster";
     plasterImg.draggable = false; 
     
     const randomRotation = (Math.random() * 30) - 15;
-    plasterImg.style.transform = `translate3d(0px, 0px, 0) rotate(${randomRotation}deg) scale(1)`;
+    // Il transform viene settato in modo da tenere conto del centramento assoluto
+    plasterImg.style.transform = `translate(-50%, -50%) rotate(${randomRotation}deg) scale(1)`;
     plasterImg.dataset.rotation = randomRotation;
 
     wrapper.appendChild(textDiv);
     wrapper.appendChild(plasterImg);
     
+    // Calcolo rigido dell'area di sicurezza basata sulla dimensione ESATTA di QUESTO cerotto
+    const availableWidth = Math.max(0, window.innerWidth - size - (marginX * 2));
+    const availableHeight = Math.max(0, window.innerHeight - size - marginTop - marginBottom);
+
     let x, y, placed = false;
     let maxTries = 4000; 
 
     for (let tries = 0; tries < maxTries; tries++) {
-      x = marginX + Math.random() * (maxX - marginX);
-      y = marginTop + Math.random() * (maxY - marginTop);
+      // Viene generata una coordinata garantita per non uscire dallo schermo
+      x = marginX + Math.random() * availableWidth;
+      y = marginTop + Math.random() * availableHeight;
 
-      let isOverlapping = usedRects.some(u => !(
-        x + itemBoxWidth < u.x ||
-        x > u.x + u.w ||
-        y + itemBoxHeight < u.y ||
-        y > u.y + u.h
-      ));
+      // Coordinate del centro per una collisione più fluida e organica
+      const cx = x + size / 2;
+      const cy = y + size / 2;
+
+      let isOverlapping = usedRects.some(u => {
+        const dist = Math.sqrt(Math.pow(cx - u.cx, 2) + Math.pow(cy - u.cy, 2));
+        return dist < (size / 2 + u.radius) * 0.8; // Permette un minuscolo sormonto del 20%
+      });
 
       if (!isOverlapping) {
         placed = true;
-        usedRects.push({ x: x, y: y, w: itemBoxWidth, h: itemBoxHeight });
+        usedRects.push({ cx: cx, cy: cy, radius: size / 2 });
         break;
       }
     }
@@ -740,7 +752,8 @@ function makeDraggable(element) {
   function renderDrag() {
     if (!isDragging) return;
     const rot = element.dataset.rotation;
-    element.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) rotate(${rot}deg) scale(1.04)`;
+    // IMPORTANTE: Manteniamo il translate(-50%, -50%) iniziale per preservare il centro
+    element.style.transform = `translate(-50%, -50%) translate3d(${currentX}px, ${currentY}px, 0) rotate(${rot}deg) scale(1.04)`;
     rafId = requestAnimationFrame(renderDrag);
   }
 
@@ -751,7 +764,7 @@ function makeDraggable(element) {
     if(rafId) cancelAnimationFrame(rafId);
 
     element.classList.remove('grabbing');
-    element.style.zIndex = "2"; 
+    element.style.zIndex = "3"; // Torna a livello 3 (Sopra al testo che è livello 1)
     
     element.removeEventListener("pointermove", dragMove);
     element.removeEventListener("pointerup", dragEnd);
@@ -766,13 +779,13 @@ function makeDraggable(element) {
       element.style.opacity = "0"; 
       element.style.pointerEvents = "none"; 
       
-      element.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) rotate(${rot}deg) scale(1)`;
+      element.style.transform = `translate(-50%, -50%) translate3d(${currentX}px, ${currentY}px, 0) rotate(${rot}deg) scale(1)`;
 
       setTimeout(() => {
          element.style.transition = "none";
          currentX = 0;
          currentY = 0;
-         element.style.transform = `translate3d(0px, 0px, 0) rotate(${rot}deg) scale(1)`;
+         element.style.transform = `translate(-50%, -50%) rotate(${rot}deg) scale(1)`;
          
          void element.offsetWidth; 
 
@@ -785,7 +798,7 @@ function makeDraggable(element) {
       element.style.filter = "drop-shadow(3px 5px 5px rgba(0,0,0,0.15))";
       currentX = 0;
       currentY = 0;
-      element.style.transform = `translate3d(0px, 0px, 0) rotate(${rot}deg) scale(1)`;
+      element.style.transform = `translate(-50%, -50%) rotate(${rot}deg) scale(1)`;
     }
   }
 }
