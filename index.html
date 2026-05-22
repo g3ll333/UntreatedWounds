@@ -618,20 +618,17 @@ async function loadMemories(forcedMemory = null) {
   const isMobile = window.innerWidth <= 768;
   const scale = isMobile ? 0.6 : 1; // Riduce del 40% la grandezza dei cerotti su mobile
 
-  const itemBoxWidth = isMobile ? 130 : 260; 
-  const itemBoxHeight = isMobile ? 110 : 220; 
+  // Su mobile, le box di collision sono più grandi per evitare sovrapposizioni
+  const itemBoxWidth = isMobile ? 200 : 260; 
+  const itemBoxHeight = isMobile ? 180 : 220; 
   
-  // IMPORTANTE: Applicare lo scale anche alle dimensioni per la collision detection!
-  const scaledItemBoxWidth = itemBoxWidth * scale;
-  const scaledItemBoxHeight = itemBoxHeight * scale;
-  
-  // Margini ridotti su mobile per sfruttare tutto lo schermo piccolo
-  const marginX = isMobile ? 15 : 80; 
-  const marginTop = isMobile ? 60 : 100; 
-  const marginBottom = isMobile ? 70 : 120; 
+  // Margini significativamente aumentati su mobile
+  const marginX = isMobile ? 50 : 80; 
+  const marginTop = isMobile ? 90 : 100; 
+  const marginBottom = isMobile ? 130 : 120; 
 
-  const bottomSafeZone = window.innerHeight - scaledItemBoxHeight - marginBottom; 
-  const rightSafeZone = window.innerWidth - scaledItemBoxWidth - marginX;
+  const bottomSafeZone = window.innerHeight - itemBoxHeight - marginBottom; 
+  const rightSafeZone = window.innerWidth - itemBoxWidth - marginX;
 
   const maxY = Math.max(marginTop, bottomSafeZone);
   const maxX = Math.max(marginX, rightSafeZone);
@@ -671,22 +668,22 @@ async function loadMemories(forcedMemory = null) {
     wrapper.appendChild(plasterImg);
     
     let x, y, placed = false;
-    let maxTries = isMobile ? 8000 : 4000; // Più tentativi su mobile per miglior placement
+    let maxTries = isMobile ? 12000 : 4000; // Molti più tentativi su mobile
 
     for (let tries = 0; tries < maxTries; tries++) {
       x = marginX + Math.random() * (maxX - marginX);
       y = marginTop + Math.random() * (maxY - marginTop);
 
       let isOverlapping = usedRects.some(u => !(
-        x + scaledItemBoxWidth < u.x ||
+        x + itemBoxWidth < u.x ||
         x > u.x + u.w ||
-        y + scaledItemBoxHeight < u.y ||
+        y + itemBoxHeight < u.y ||
         y > u.y + u.h
       ));
 
       if (!isOverlapping) {
         placed = true;
-        usedRects.push({ x: x, y: y, w: scaledItemBoxWidth, h: scaledItemBoxHeight });
+        usedRects.push({ x: x, y: y, w: itemBoxWidth, h: itemBoxHeight });
         break;
       }
     }
