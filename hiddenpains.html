@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hidden Pains - Dr. Ausbüttel</title>
+
+  <!-- Importato i pesi ExtraLight (200), Light (300), Regular (400) e Medium (500), anche in versione Italic -->
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,200;0,300;0,400;0,500;1,200;1,300;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --dr-red: #d32027; /* Dr. Ausbüttel Red */
+      --dr-blue: #003a70; /* Dr. Ausbüttel Blue */
+      --bg-color: #ffffff;
+    }
+
+    body {
+      font-family: 'IBM Plex Mono', monospace;
+      background-color: var(--bg-color);
+      color: #000000;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      overflow: hidden; /* Prevent scrolling, keeps it a canvas */
+      position: relative;
+    }
+
+    /* --- LOGO BRAND --- */
+    #brandLogo {
+      position: fixed;
+      top: 2rem;
+      right: 2.5rem;
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.5s ease;
+    }
+
+    #brandLogo.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #brandLogo img {
+      height: 54px; /* Ingrandito per essere leggibile ma minimale */
+      width: auto;
+      opacity: 0.4;
+      filter: grayscale(100%);
+      transition: all 0.4s ease;
+    }
+
+    #brandLogo:hover img {
+      opacity: 1;
+      filter: grayscale(0%);
+    }
+
+    /* --- SCREENS MANAGEMENT --- */
+    .fullscreen-screen {
+      position: fixed;
+      inset: 0;
+      background-color: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      transition: opacity 1s ease, visibility 1s; /* Velocizzato da 1.5s a 1s */
+    }
+
+    .fullscreen-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .fullscreen-screen.visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    /* --- 1. INTRO SCREEN --- */
+    #introScreen {
+      z-index: 50; 
+    }
+
+    #introText {
+      color: #666;
+      font-weight: 300; 
+      font-style: italic;
+      font-size: 1rem;
+      line-height: 1.8;
+      text-align: center;
+      max-width: 500px;
+      opacity: 0;
+      transition: opacity 1.5s ease; /* Velocizzato */
+    }
+
+    #introText.visible {
+      opacity: 1;
+    }
+
+    #enterButton {
+      margin-top: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.5s ease;
+    }
+
+    #enterButton.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* --- 2. FORM SCREEN --- */
+    #formScreen {
+      z-index: 40;
+    }
+
+    .form-intro {
+      font-size: 0.9rem;
+      color: var(--dr-blue);
+      margin-bottom: 2rem;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 500px; /* Limita la larghezza del form al centro */
+      gap: 1rem;
+    }
+
+    textarea, input[type="text"] {
+      padding: 1.2rem; 
+      font-family: inherit;
+      font-size: 0.9rem;
+      border: none; 
+      border-radius: 4px;
+      background-color: #f5f5f5; 
+      resize: none;
+      transition: background-color 0.3s;
+    }
+    
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      background-color: #eeeeee; 
+    }
+
+    textarea {
+      height: 7rem; /* Leggermente più alto ora che ha tutto lo schermo per sé */
+    }
+
+    /* Form Plaster Selector */
+    .plaster-selector-title {
+      font-size: 0.9rem;
+      color: #666;
+      text-align: center;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .plaster-selector {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem; /* Ridotto il gap perché ora le immagini hanno un padding interno */
+      margin-bottom: 0.8rem;
+    }
+
+    .plaster-selector label {
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .plaster-selector input {
+      display: none;
+    }
+
+    .plaster-selector img {
+      height: 40px;
+      width: auto;
+      padding: 15px; /* Aggiunto spazio interno per evitare che l'ombra venga tagliata dai bordi */
+      object-fit: contain;
+      opacity: 0.3;
+      filter: grayscale(100%);
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      will-change: transform, filter;
+    }
+
+    .plaster-selector label:first-child img {
+      height: 32px;
+    }
+
+    .plaster-selector label:nth-child(2) img {
+      height: 44px;
+    }
+
+    .plaster-selector input:checked + img {
+      opacity: 1;
+      filter: grayscale(0%) drop-shadow(2px 4px 6px rgba(0,0,0,0.25));
+      transform: scale(1.2);
+    }
+
+    button {
+      color: #999;
+      background: none;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 300;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+      align-self: center;
+    }
+
+    button:hover {
+      color: var(--dr-blue);
+      background: none;
+    }
+
+    /* --- 3. THANK YOU SCREEN --- */
+    #thanksMessage {
+      z-index: 30;
+      font-size: 1.5rem;
+      color: var(--dr-blue);
+      text-align: center;
+    }
+
+    /* --- 4. CANVAS SCREEN (ARCHIVE) --- */
+    #canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none; 
+    }
+
+    .memory-wrapper {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.8s ease; /* Resa più scattante l'apparizione */
+      pointer-events: auto;
+    }
+
+    .memory-wrapper.visible {
+      opacity: 1;
+    }
+
+    .memory-text {
+      color: var(--dr-red);
+      font-size: 0.8rem; 
+      font-weight: 200;  
+      text-align: center;
+      line-height: 1.5;
+      user-select: none;
+    }
+
+    .memory-author {
+      display: block;
+      margin-top: 0.3rem; 
+      font-size: 0.85em;
+      font-weight: 300; 
+      font-style: italic;
+      color: #666;
+    }
+
+    .plaster {
+      position: absolute;
+      object-fit: contain;
+      cursor: grab;
+      z-index: 2;
+      filter: drop-shadow(3px 5px 5px rgba(0,0,0,0.15));
+      will-change: transform, filter, opacity;
+      transform: translate3d(0, 0, 0);
+      user-select: none;
+      -webkit-user-drag: none;
+      -webkit-touch-callout: none;
+      outline: none;
+      touch-action: none;
+    }
+
+    .plaster.grabbing {
+      cursor: grabbing;
+    }
+
+    /* --- REFRESH BUTTON --- */
+    #refreshButton {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      font-size: 0.8rem;
+      transition: color 0.3s ease, opacity 0.6s ease; /* Velocizzato */
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #refreshButton.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    ::selection {
+      background: var(--dr-red);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Logo Dr. Ausbüttel (Link ufficiale) -->
+  <a href="https://www.dr-ausbuettel.de/" target="_blank" id="brandLogo">
+    <img src="Logo_Dr.-Ausbuettel.png" alt="Dr. Ausbüttel">
+  </a>
+
+  <!-- 1. Schermata Introduttiva -->
+  <div id="introScreen" class="fullscreen-screen visible">
+    <div id="introText">
+      A safe space for unseen wounds.<br><br>
+      Read the hidden pains of others,<br>
+      or leave your own memory behind,<br>
+      and let it heal.
+    </div>
+    <button id="enterButton">Enter the archive</button>
+  </div>
+
+  <!-- 2. Schermata di Inserimento (Form) -->
+  <div id="formScreen" class="fullscreen-screen hidden">
+    <div class="form-intro">
+      We all carry wounds.<br>Share your pain, put a plaster on it, and let it heal.
+    </div>
+    <form id="memoryForm">
+      <textarea name="message" placeholder="Write your memory..." required></textarea>
+      <input type="text" name="name" placeholder="Your name or initials">
+      
+      <div class="plaster-selector-title">Choose your plaster</div>
+      <div class="plaster-selector">
+        <label>
+          <input type="radio" name="plasterType" value="normal" checked>
+          <img src="AdobeStock_504756118.png" alt="Normal">
+        </label>
+        <label>
+          <input type="radio" name="plasterType" value="double">
+          <img src="doppio.png" alt="Double">
+        </label>
+        <label>
+          <input type="radio" name="plasterType" value="square">
+          <img src="quadrato.png" alt="Square">
+        </label>
+        <label>
+          <input type="radio" name="plasterType" value="round">
+          <img src="rotondo.png" alt="Round">
+        </label>
+      </div>
+
+      <button type="submit">Apply the plaster</button>
+    </form>
+  </div>
+
+  <!-- 3. Schermata di Ringraziamento -->
+  <div id="thanksMessage" class="fullscreen-screen hidden">
+    Thank you for sharing your vulnerability.
+  </div>
+
+  <!-- 4. Area Archivio (Canvas con i cerotti) -->
+  <div id="canvas"></div>
+
+  <!-- Pulsante per ricaricare le memorie (inizialmente nascosto) -->
+  <button id="refreshButton">Load other memories</button>
+
+<script>
+/* ---------------------------------------------------
+   SCREENS & TIMINGS LOGIC
+--------------------------------------------------- */
+const introScreen = document.getElementById("introScreen");
+const introText = document.getElementById("introText");
+const enterButton = document.getElementById("enterButton");
+const formScreen = document.getElementById("formScreen");
+const thanksMessage = document.getElementById("thanksMessage");
+const memoryForm = document.getElementById("memoryForm");
+const canvas = document.getElementById("canvas");
+const refreshButton = document.getElementById("refreshButton");
+const brandLogo = document.getElementById("brandLogo");
+
+// Avvio: Animazioni dell'Intro - Tempi dimezzati e più scattanti
+window.onload = () => {
+  setTimeout(() => {
+    introText.classList.add("visible");
+  }, 500);
+
+  setTimeout(() => {
+    enterButton.classList.add("visible");
+  }, 2500); // Prima era 4500
+};
+
+// Transizione 1: Da Intro a Form
+enterButton.addEventListener("click", () => {
+  introScreen.classList.remove("visible");
+  introScreen.classList.add("hidden");
+  
+  setTimeout(() => {
+    formScreen.classList.remove("hidden");
+    formScreen.classList.add("visible");
+  }, 800); // Prima era 1500
+});
+
+// Transizione 2: Da Form a Thanks, e infine Canvas
+memoryForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  
+  // 1. Nascondi il Form
+  formScreen.classList.remove("visible");
+  formScreen.classList.add("hidden");
+  
+  const formData = new FormData(memoryForm);
+  const newMemory = { 
+    message: formData.get("message"), 
+    name: formData.get("name"), 
+    plasterType: formData.get("plasterType") 
+  };
+
+  try {
+    const data = new URLSearchParams(formData);
+    // mode: 'no-cors' aggiunge robustezza all'invio per evitare blocchi del browser sul redirect
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: data
+    });
+  } catch(e) {
+    console.error("Error saving to sheet", e);
+  }
+  
+  // 2. Mostra il Thanks message più velocemente
+  setTimeout(() => {
+    thanksMessage.classList.remove("hidden");
+    thanksMessage.classList.add("visible");
+  }, 600); // Prima era 1500
+
+  // 3. Nascondi il Thanks message e Carica il Canvas in tempi più rapidi
+  setTimeout(() => {
+    thanksMessage.classList.remove("visible");
+    thanksMessage.classList.add("hidden");
+    
+    // Mostriamo il logo del Brand in alto a destra
+    brandLogo.classList.add("visible");
+
+    // Inizia a generare i cerotti
+    loadMemories(newMemory);
+  }, 2800); // Prima era 5000 (rimane a schermo per ~2 secondi)
+});
+
+/* ---------------------------------------------------
+   LOGICA DI RICARICA MEMORIE (REFRESH)
+--------------------------------------------------- */
+refreshButton.addEventListener("click", () => {
+  // Nasconde il bottone
+  refreshButton.classList.remove("visible");
+  
+  // Svaniscono tutte le memorie con un effetto molto rapido
+  const wrappers = document.querySelectorAll(".memory-wrapper");
+  wrappers.forEach(w => {
+    w.style.opacity = "0";
+    w.style.pointerEvents = "none";
+  });
+
+  // Ricalcola subito e ricarica i nuovi cerotti
+  setTimeout(() => {
+    loadMemories(); 
+  }, 600); // Prima era 1000
+});
+
+/* ---------------------------------------------------
+   INITIAL DATA & CONFIG
+--------------------------------------------------- */
+const MAX_PLASTERS = 20;
+
+// Lista di memorie fallback
+let fallbackMemories = [
+  { message: "I haven't talked to my father for 3 years.", name: "A.C." },
+  { message: "I wasn't there when my grandmother passed away.", name: "M." },
+  { message: "I still feel guilty for the way I ended my last relationship.", name: "Anonymous" },
+  { message: "I gave up on my dream career because I was afraid of failing.", name: "J. Doe" },
+  { message: "I pretend to be happy around my friends, but I feel completely alone.", name: "S." },
+  { message: "I lied to protect myself, but it ended up hurting someone I loved.", name: "Anonymous" },
+  { message: "I constantly feel like I'm not good enough for my partner.", name: "E.R." },
+  { message: "I lost my best friend over a stupid argument and never apologized.", name: "L." },
+  { message: "I missed the chance to say a proper goodbye.", name: "Anonymous" },
+  { message: "I sometimes wish I had chosen a completely different life path.", name: "D.K." },
+  { message: "I still have the ring, hidden in a drawer.", name: "Anonymous" },
+  { message: "I never forgave myself for walking away when you needed me.", name: "T." },
+  { message: "I smile every day, but inside I'm so exhausted.", name: "V." },
+  { message: "I threw away the letter without reading it, and I regret it.", name: "Anonymous" },
+  { message: "I let him believe it was his fault.", name: "P." },
+  { message: "I'm terrified that my children will inherit my sadness.", name: "C.M." },
+  { message: "I pretend I don't remember, but I remember everything.", name: "Anonymous" },
+  { message: "I sold the watch he gave me to pay rent.", name: "R.S." },
+  { message: "I never told my mother I forgave her before she died.", name: "Anonymous" },
+  { message: "I stay in this city just in case you come back.", name: "E." },
+  { message: "I didn't answer his last phone call.", name: "Anonymous" },
+  { message: "I'm in love with someone who doesn't know I exist.", name: "F." },
+  { message: "I sabotage every good thing because I don't feel worthy.", name: "Anonymous" },
+  { message: "I told everyone it was a mutual breakup. It wasn't.", name: "J." },
+  { message: "I secretly resent my sibling's success.", name: "Anonymous" },
+  { message: "I still listen to the voicemail you left me 5 years ago.", name: "B.W." },
+  { message: "I dropped out of college and haven't told my parents yet.", name: "Anonymous" },
+  { message: "I laugh at the jokes, but they actually hurt.", name: "D." },
+  { message: "I stopped painting when she told me I wasn't talented.", name: "A." },
+  { message: "I push people away before they can leave me.", name: "Anonymous" }
+];
+
+/* Nuove dimensioni ricalibrate per rispettare rigidamente la gerarchia estetica e di copertura:
+  Rotondo (Small) < Quadrato (Medium) < Normale (Large) < Doppio (Extra Large)
+*/
+const plasterConfig = {
+  "round":  { src: "rotondo.png",              imgWidth: "120px", textWidth: "85px" },
+  "square": { src: "quadrato.png",             imgWidth: "150px", textWidth: "115px" },
+  "normal": { src: "AdobeStock_504756118.png", imgWidth: "210px", textWidth: "160px" },
+  "double": { src: "doppio.png",               imgWidth: "240px", textWidth: "180px" }
+};
+
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6Nkhxi6GkWRa571tVQFKR0qtZ9dGjzhVT0l7u0XUWcbsGRQoyuaS-C_Ps1bLeAsUS/exec";
+
+
+/* ---------------------------------------------------
+   LOAD & RENDER MEMORIES (CANVAS) - ANTI DUPLICATI
+--------------------------------------------------- */
+async function loadMemories(forcedMemory = null) {
+  let fetchedPool = [];
+
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL);
+    if (!res.ok) throw new Error("Network response was not ok");
+    const data = await res.json();
+    if(data && Array.isArray(data) && data.length > 0) {
+        fetchedPool = data;
+    }
+  } catch (error) {
+    console.warn("Impossibile connettersi al Foglio Google.", error);
+  }
+
+  let memoriesToDisplay = [];
+  const usedMessages = new Set(); 
+
+  if (forcedMemory) {
+    memoriesToDisplay.push(forcedMemory);
+    usedMessages.add(forcedMemory.message);
+  }
+
+  let shuffledFetched = [...fetchedPool].sort(() => 0.5 - Math.random());
+  for (let mem of shuffledFetched) {
+    if (memoriesToDisplay.length >= MAX_PLASTERS) break; 
+    if (!usedMessages.has(mem.message)) {
+      memoriesToDisplay.push(mem);
+      usedMessages.add(mem.message); 
+    }
+  }
+
+  let shuffledFallback = [...fallbackMemories].sort(() => 0.5 - Math.random());
+  for (let mem of shuffledFallback) {
+    if (memoriesToDisplay.length >= MAX_PLASTERS) break; 
+    if (!usedMessages.has(mem.message)) {
+      memoriesToDisplay.push(mem);
+      usedMessages.add(mem.message); 
+    }
+  }
+
+  memoriesToDisplay = memoriesToDisplay.sort(() => 0.5 - Math.random());
+
+  canvas.innerHTML = "";
+  const usedRects = [];
+  const elements = [];
+
+  const itemBoxWidth = 260; 
+  const itemBoxHeight = 220; 
+  
+  // Margini di Sicurezza: incrementati notevolmente per impedire a qualsiasi cerotto (incluso il doppio) di uscire dallo schermo
+  const marginX = 80; 
+  const marginTop = 100; // Protegge il bordo superiore e il logo
+  const marginBottom = 120; // Protegge il pulsante in basso
+
+  const bottomSafeZone = window.innerHeight - itemBoxHeight - marginBottom; 
+  const rightSafeZone = window.innerWidth - itemBoxWidth - marginX;
+
+  const maxY = Math.max(marginTop, bottomSafeZone);
+  const maxX = Math.max(marginX, rightSafeZone);
+
+  memoriesToDisplay.forEach((item, index) => {
+    let pType = item.plasterType;
+    if (!pType) {
+      const types = Object.keys(plasterConfig);
+      pType = types[Math.floor(Math.random() * types.length)];
+    }
+
+    const plasterData = plasterConfig[pType] || plasterConfig["normal"];
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "memory-wrapper";
+    wrapper.style.width = plasterData.textWidth;
+
+    const textDiv = document.createElement("div");
+    textDiv.className = "memory-text";
+    textDiv.innerHTML = `${item.message}<span class="memory-author">— ${item.name || "Anonymous"}</span>`;
+
+    const plasterImg = document.createElement("img");
+    plasterImg.className = "plaster";
+    plasterImg.src = plasterData.src;
+    plasterImg.style.width = plasterData.imgWidth;
+    
+    plasterImg.alt = "Plaster";
+    plasterImg.draggable = false; 
+    
+    const randomRotation = (Math.random() * 30) - 15;
+    plasterImg.style.transform = `translate3d(0px, 0px, 0) rotate(${randomRotation}deg) scale(1)`;
+    plasterImg.dataset.rotation = randomRotation;
+
+    wrapper.appendChild(textDiv);
+    wrapper.appendChild(plasterImg);
+    
+    let x, y, placed = false;
+    let maxTries = 4000; 
+
+    for (let tries = 0; tries < maxTries; tries++) {
+      x = marginX + Math.random() * (maxX - marginX);
+      y = marginTop + Math.random() * (maxY - marginTop);
+
+      let isOverlapping = usedRects.some(u => !(
+        x + itemBoxWidth < u.x ||
+        x > u.x + u.w ||
+        y + itemBoxHeight < u.y ||
+        y > u.y + u.h
+      ));
+
+      if (!isOverlapping) {
+        placed = true;
+        usedRects.push({ x: x, y: y, w: itemBoxWidth, h: itemBoxHeight });
+        break;
+      }
+    }
+
+    if (placed) {
+      wrapper.style.left = x + "px";
+      wrapper.style.top = y + "px";
+      
+      canvas.appendChild(wrapper);
+      elements.push(wrapper);
+      makeDraggable(plasterImg);
+    }
+  });
+
+  // Animazione a cascata per l'apparizione velocizzata (80ms invece di 150ms)
+  elements.forEach((el, i) => {
+    setTimeout(() => el.classList.add("visible"), i * 80);
+  });
+
+  // Mostriamo il bottone di Refresh subito dopo che l'ultimo cerotto è apparso
+  setTimeout(() => {
+    refreshButton.classList.add("visible");
+  }, (elements.length * 80) + 300);
+}
+
+/* ---------------------------------------------------
+   FLUID DRAG LOGIC FOR PLASTERS (Hardware Accelerated)
+--------------------------------------------------- */
+function makeDraggable(element) {
+  let isDragging = false;
+  let startX, startY;
+  let currentX = 0, currentY = 0;
+  let rafId = null;
+
+  element.addEventListener("pointerdown", dragStart);
+
+  function dragStart(e) {
+    if (e.button !== 0 && e.type !== 'touchstart' && e.type !== 'pointerdown') return; 
+    
+    e.preventDefault(); 
+    isDragging = true;
+    
+    element.classList.add('grabbing');
+    element.style.zIndex = "100";
+    element.setPointerCapture(e.pointerId);
+
+    element.style.transition = "filter 0.3s ease";
+    element.style.filter = "drop-shadow(5px 15px 12px rgba(0,0,0,0.3))";
+
+    startX = e.clientX - currentX;
+    startY = e.clientY - currentY;
+
+    element.addEventListener("pointermove", dragMove);
+    element.addEventListener("pointerup", dragEnd);
+    element.addEventListener("pointercancel", dragEnd);
+
+    if(rafId) cancelAnimationFrame(rafId);
+    renderDrag();
+  }
+
+  function dragMove(e) {
+    if (!isDragging) return;
+    currentX = e.clientX - startX;
+    currentY = e.clientY - startY;
+  }
+
+  function renderDrag() {
+    if (!isDragging) return;
+    const rot = element.dataset.rotation;
+    element.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) rotate(${rot}deg) scale(1.04)`;
+    rafId = requestAnimationFrame(renderDrag);
+  }
+
+  function dragEnd(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    
+    if(rafId) cancelAnimationFrame(rafId);
+
+    element.classList.remove('grabbing');
+    element.style.zIndex = "2"; 
+    
+    element.removeEventListener("pointermove", dragMove);
+    element.removeEventListener("pointerup", dragEnd);
+    element.removeEventListener("pointercancel", dragEnd);
+    element.releasePointerCapture(e.pointerId);
+
+    const rot = element.dataset.rotation;
+
+    if (Math.abs(currentX) > 20 || Math.abs(currentY) > 20) {
+      element.style.transition = "transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s ease, filter 0.3s ease";
+      element.style.filter = "drop-shadow(3px 5px 5px rgba(0,0,0,0.15))";
+      element.style.opacity = "0"; 
+      element.style.pointerEvents = "none"; 
+      
+      element.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) rotate(${rot}deg) scale(1)`;
+
+      setTimeout(() => {
+         element.style.transition = "none";
+         currentX = 0;
+         currentY = 0;
+         element.style.transform = `translate3d(0px, 0px, 0) rotate(${rot}deg) scale(1)`;
+         
+         void element.offsetWidth; 
+
+         element.style.transition = "opacity 1.5s ease";
+         element.style.opacity = "1";
+         element.style.pointerEvents = "auto";
+      }, 10000); 
+    } else {
+      element.style.transition = "transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease";
+      element.style.filter = "drop-shadow(3px 5px 5px rgba(0,0,0,0.15))";
+      currentX = 0;
+      currentY = 0;
+      element.style.transform = `translate3d(0px, 0px, 0) rotate(${rot}deg) scale(1)`;
+    }
+  }
+}
+
+</script>
+</body>
+</html>
