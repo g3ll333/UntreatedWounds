@@ -40,6 +40,9 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 1.5s ease;
+      display: flex;
+      align-items: center;
+      height: 54px; /* Altezza fissata uguale al link di sinistra per perfetta simmetria */
     }
 
     #brandLogo.visible {
@@ -48,7 +51,7 @@
     }
 
     #brandLogo img {
-      height: 54px; /* Ingrandito per essere leggibile ma minimale */
+      height: 100%; /* L'immagine riempie i 54px */
       width: auto;
       opacity: 0.4;
       filter: grayscale(100%);
@@ -58,6 +61,45 @@
     #brandLogo:hover img {
       opacity: 1;
       filter: grayscale(0%);
+    }
+
+    /* --- STORY LINK --- */
+    #storyLink {
+      position: fixed;
+      top: 2rem;
+      left: 2.5rem;
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.5s ease;
+      display: flex;
+      align-items: center;
+      height: 54px; /* Altezza fissata uguale al logo per perfetta simmetria */
+    }
+
+    #storyLink.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #storyLink button {
+      color: #bbb;
+      background: none;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 300;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+      white-space: nowrap;
+    }
+
+    #storyLink button:hover {
+      color: var(--dr-blue);
     }
 
     /* --- SCREENS MANAGEMENT --- */
@@ -240,7 +282,6 @@
       font-size: 1rem;
       color: var(--dr-blue);
       text-align: center;
-      
       font-weight: 300; 
       font-style: italic;
     }
@@ -268,12 +309,19 @@
     }
 
     .memory-text {
+      position: relative;
+      z-index: 1; /* Il testo sta sempre sotto il cerotto */
       color: var(--dr-red);
       font-size: 0.8rem; 
       font-weight: 200;  
       text-align: center;
       line-height: 1.5;
       user-select: none;
+      pointer-events: none; /* I clic passano attraverso il testo per non disturbare il drag */
+      background: rgba(255, 255, 255, 0.7); 
+      padding: 4px 8px;
+      border-radius: 4px;
+      transform: translateY(15px); /* Spinge in basso il testo facendolo sbucare fuori dai cerotti */
     }
 
     .memory-author {
@@ -338,11 +386,19 @@
       #brandLogo img {
         height: 38px; /* Logo rimpicciolito su mobile */
       }
+      #storyLink {
+        top: 1rem;
+        left: 1.5rem;
+      }
+      #storyLink button {
+        font-size: 0.7rem;
+      }
       #introText {
         font-size: 0.9rem;
       }
       .memory-text {
         font-size: 0.65rem; /* Testi sotto i cerotti più piccoli */
+        transform: translateY(10px); /* Ridotto lo slittamento per schermi piccoli */
       }
       .memory-author {
         font-size: 0.8em;
@@ -360,6 +416,11 @@
   <a href="https://www.dr-ausbuettel.de/" target="_blank" id="brandLogo">
     <img src="Logo_Dr.-Ausbuettel.png" alt="Dr. Ausbüttel">
   </a>
+
+  <!-- Story Link (Why care matters) -->
+  <div id="storyLink">
+    <button id="storyLinkButton">Why care matters</button>
+  </div>
 
   <!-- 1. Schermata Introduttiva -->
   <div id="introScreen" class="fullscreen-screen visible">
@@ -429,6 +490,13 @@ const memoryForm = document.getElementById("memoryForm");
 const canvas = document.getElementById("canvas");
 const refreshButton = document.getElementById("refreshButton");
 const brandLogo = document.getElementById("brandLogo");
+const storyLink = document.getElementById("storyLink");
+const storyLinkButton = document.getElementById("storyLinkButton");
+
+// Gestione del click sul link "Why care matters"
+storyLinkButton.addEventListener("click", () => {
+  window.location.href = "story.html";
+});
 
 // Avvio: Animazioni dell'Intro
 window.onload = () => {
@@ -510,6 +578,7 @@ memoryForm.addEventListener("submit", async (e) => {
     thanksMessage.classList.add("hidden");
     
     brandLogo.classList.add("visible");
+    storyLink.classList.add("visible");
 
     loadMemories(newMemory);
   }, 2800); 
@@ -570,9 +639,10 @@ let fallbackMemories = [
   { message: "I push people away before they can leave me.", name: "Anonymous" }
 ];
 
+// Impostazioni di base aumentate per dare sempre un po' più di respiro alle frasi
 const plasterConfig = {
-  "round":  { src: "rotondo.png",              imgWidth: "120px", textWidth: "85px" },
-  "square": { src: "quadrato.png",             imgWidth: "150px", textWidth: "115px" },
+  "round":  { src: "rotondo.png",              imgWidth: "120px", textWidth: "110px" },
+  "square": { src: "quadrato.png",             imgWidth: "150px", textWidth: "130px" },
   "normal": { src: "normale.png",              imgWidth: "210px", textWidth: "160px" },
   "double": { src: "doppio.png",               imgWidth: "240px", textWidth: "180px" }
 };
@@ -634,21 +704,11 @@ async function loadMemories(forcedMemory = null) {
   // ==========================================
   const isMobile = window.innerWidth <= 768;
   const scale = isMobile ? 0.6 : 1; // Riduce del 40% la grandezza dei cerotti su mobile
-
-  // Box di collisione: su mobile più compatte per permettere più elementi
-  const itemBoxWidth = isMobile ? 130 : 260; 
-  const itemBoxHeight = isMobile ? 120 : 220; 
   
-  // Margini ridotti per sfruttare tutto lo spazio disponibile
-  const marginX = isMobile ? 15 : 80; 
+  // Margini ridotti su mobile per sfruttare tutto lo schermo piccolo
+  const marginX = isMobile ? 20 : 80; 
   const marginTop = isMobile ? 70 : 100; 
   const marginBottom = isMobile ? 80 : 120; 
-
-  const bottomSafeZone = window.innerHeight - itemBoxHeight - marginBottom; 
-  const rightSafeZone = window.innerWidth - itemBoxWidth - marginX;
-
-  const maxY = Math.max(marginTop, bottomSafeZone);
-  const maxX = Math.max(marginX, rightSafeZone);
 
   memoriesToDisplay.forEach((item, index) => {
     let pType = item.plasterType;
@@ -659,14 +719,26 @@ async function loadMemories(forcedMemory = null) {
 
     const plasterData = plasterConfig[pType] || plasterConfig["normal"];
 
+    let tWidth = parseInt(plasterData.textWidth);
+    let boxW = isMobile ? 130 : 260; 
+    let boxH = isMobile ? 110 : 220; 
+
+    // === FIX FRASI LUNGHE ===
+    // Se la frase è lunga (più di 45 caratteri), ignoriamo il limite del cerottino e facciamo allargare il testo.
+    // Contestualmente, aumentiamo l'altezza "invisibile" di sicurezza per evitare di andare addosso agli altri!
+    if (item.message.length > 45) {
+      tWidth = Math.max(tWidth, 180); // Il testo si allarga in orizzontale
+      boxH += isMobile ? 40 : 70; // La scatola di collisione aumenta in altezza per proteggerlo
+    }
+
     const wrapper = document.createElement("div");
     wrapper.className = "memory-wrapper";
-    // Applica il ridimensionamento
-    wrapper.style.width = (parseInt(plasterData.textWidth) * scale) + "px";
+    // Applica il ridimensionamento orizzontale
+    wrapper.style.width = (tWidth * scale) + "px";
 
     const textDiv = document.createElement("div");
     textDiv.className = "memory-text";
-    textDiv.innerHTML = `${item.message}<span class="memory-author">— ${item.name || "Anonymous"}</span>`;
+    textDiv.innerHTML = `${item.message}<br><span class="memory-author">— ${item.name || "Anonymous"}</span>`;
 
     const plasterImg = document.createElement("img");
     plasterImg.className = "plaster";
@@ -684,23 +756,30 @@ async function loadMemories(forcedMemory = null) {
     wrapper.appendChild(textDiv);
     wrapper.appendChild(plasterImg);
     
+    // Ricalcola i confini visibili per questo specifico blocco
+    const bottomSafeZone = window.innerHeight - boxH - marginBottom; 
+    const rightSafeZone = window.innerWidth - boxW - marginX;
+    
+    const maxY = Math.max(marginTop, bottomSafeZone);
+    const maxX = Math.max(marginX, rightSafeZone);
+
     let x, y, placed = false;
-    let maxTries = isMobile ? 12000 : 4000; // Molti più tentativi su mobile
+    let maxTries = 4000; 
 
     for (let tries = 0; tries < maxTries; tries++) {
       x = marginX + Math.random() * (maxX - marginX);
       y = marginTop + Math.random() * (maxY - marginTop);
 
       let isOverlapping = usedRects.some(u => !(
-        x + itemBoxWidth < u.x ||
+        x + boxW < u.x ||
         x > u.x + u.w ||
-        y + itemBoxHeight < u.y ||
+        y + boxH < u.y ||
         y > u.y + u.h
       ));
 
       if (!isOverlapping) {
         placed = true;
-        usedRects.push({ x: x, y: y, w: itemBoxWidth, h: itemBoxHeight });
+        usedRects.push({ x: x, y: y, w: boxW, h: boxH });
         break;
       }
     }

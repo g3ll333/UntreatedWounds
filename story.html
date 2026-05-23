@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Wounds Worth Healing - Untreated Wounds</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,200;0,300;0,400;0,500;1,200;1,300;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --dr-red: #d32027;
+      --dr-blue: #003a70;
+      --bg-color: #ffffff;
+    }
+
+    html, body {
+      font-family: 'IBM Plex Mono', monospace;
+      background-color: var(--bg-color);
+      color: #000000;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      position: fixed;
+      touch-action: none;
+    }
+
+    .story-container {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 6rem 2rem 2rem 2rem;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overflow-x: hidden;
+    }
+
+    .story-content {
+      max-width: 700px;
+      color: #666;
+      font-weight: 300;
+      font-size: 0.95rem;
+      line-height: 1.9;
+      text-align: center;
+    }
+
+    .story-content h1 {
+      font-size: 1.3rem;
+      color: #666;
+      font-weight: 300;
+      margin-bottom: 2rem;
+      margin-top: 0;
+      text-align: center;
+      font-style: italic;
+    }
+
+    .story-content p {
+      margin-bottom: 1.5rem;
+      text-align: justify;
+    }
+
+    .story-content strong {
+      color: #666;
+      font-weight: 500;
+    }
+
+    .story-content em {
+      font-style: italic;
+      color: #666;
+    }
+
+    #backButton {
+      color: #999;
+      background: none;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 300;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+      opacity: 1;
+      pointer-events: auto;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #backButton:hover {
+      color: var(--dr-blue);
+    }
+
+    @media (max-width: 768px) {
+      .story-container {
+        padding: 5rem 1.5rem 1.5rem 1.5rem;
+      }
+
+      #backButton {
+        font-size: 0.7rem;
+      }
+
+      .story-content {
+        font-size: 0.9rem;
+        line-height: 1.8;
+      }
+
+      .story-content h1 {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="story-container">
+    <div class="story-content">
+      <h1>Wounds Worth Healing</h1>
+
+      <p>
+        Healing should be a comprehensive approach, one that embraces <strong>both physical and mental well-being</strong>. These two dimensions of our health are inseparable, yet society often treats them as distinct realms. The invisible wounds we carry emotionally deserve the same attention, care, and respect as the visible ones on our skin.
+      </p>
+
+      <!-- <p>
+        This project emerged from a simple observation: we apply plasters to our physical wounds without hesitation, yet we often leave our emotional wounds bare and unhealed. The metaphor is intentional and profound.
+      </p> -->
+
+      <p>
+        <strong>The concept behind Untreated Wounds</strong> centers on prevention, both physical and mental health. By sharing anonymous memories of emotional wounds through this archive, we create a space where vulnerability becomes collective wisdom. Each memory, partially concealed beneath a plaster, tells us something crucial: <em>no one heals alone, and all wounds deserve care.</em>
+      </p>
+
+      <p>
+        Research shows us something alarming: <strong>74.5% of adults don't follow proper wound care guidelines</strong>, relying instead on folklore and misconceptions. Many believe wounds should "breathe" to heal faster, yet clinical studies from the Cleveland Clinic and peer-reviewed research consistently prove the opposite—moist wound environments heal more efficiently.
+      </p>
+
+      <p>
+        But there's a deeper pattern. As we age, we stop caring for our wounds. The plaster becomes a symbol of childhood, something we "outgrow." We abandon it not because it's no longer needed, but because we've learned to ignore pain—both physical and emotional. The Global First Aid Centre documents this shift: while children openly respond to hurt, adults learn to suppress it. We leave small cuts uncovered, and similarly, we leave emotional wounds untreated, festering silently beneath the surface.
+      </p>
+
+      <p>
+        <strong>Mental health deserves the same preventative care as physical health.</strong> Just as untreated physical wounds lead to infection and complications, untreated emotional wounds accumulate and manifest as anxiety, depression, and disconnection. The stigma around seeking help for mental health persists, yet the science is clear: caring for our emotional wounds shouldn't be a luxury, but essential maintenance.
+      </p>
+
+      <p>
+        This platform exists to challenge that silence. By sharing our wounds anonymously, we normalize the experience of suffering and the act of healing. We acknowledge that vulnerability is universal, and that seeking care is an act of strength, not weakness.
+      </p>
+
+      <p>
+        <strong>Every wound, visible or invisible, is worth healing.</strong> Through collective storytelling and genuine care for one another, we begin to understand that healing isn't an individual journey. It's a shared practice of compassion, starting with ourselves and extending to others who carry untreated wounds of their own.
+      </p>
+
+      <p style="margin-top: 3rem; font-size: 0.85rem; color: #999; text-align: center; font-style: italic;">
+        Take care of your wounds, physical and emotional. The world heals when we do.
+      </p>
+
+      <button id="backButton" style="margin-top: 2.5rem;">Back to the archive</button>
+    </div>
+  </div>
+
+  <script>
+    const backButton = document.getElementById("backButton");
+    
+    backButton.addEventListener("click", () => {
+      // Torna alla pagina precedente nel browser history (alla vista dei cerotti)
+      window.history.back();
+    });
+  </script>
+
+</body>
+</html>
