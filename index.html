@@ -459,6 +459,23 @@ memoryForm.addEventListener("submit", async (e) => {
   // RITRAE FORZATAMENTE LA TASTIERA IOS PREVENENDO SCROLL BLOCCATI
   document.activeElement.blur();
   
+  // Controlla se il campo nome è vuoto
+  const nameField = memoryForm.querySelector('input[name="name"]');
+  let name = nameField.value.trim();
+  
+  if (!name) {
+    // Se il nome è vuoto, chiedi all'utente se vuole essere salvato come Anonymous
+    const userChoice = confirm("You haven't filled in your name. Do you want to be saved as 'Anonymous'?");
+    if (userChoice) {
+      name = "Anonymous";
+      nameField.value = name;
+    } else {
+      // Se l'utente non vuole essere Anonymous, rimane nel form
+      nameField.focus();
+      return;
+    }
+  }
+  
   // Nascondi il Form
   formScreen.classList.remove("visible");
   formScreen.classList.add("hidden");
